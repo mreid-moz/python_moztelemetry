@@ -148,7 +148,12 @@ class Dataset:
             keys = executor.map(self.store.list_keys, scanned)
         # Using chain to keep the list of keys as a generator
         keys = chain(*keys)
-        return islice(keys, limit) if limit else keys
+
+        if callable(limit):
+            return [ k for k in keys if limit(k['key']) ]
+        elif limit:
+            return islice(keys, limit)
+        return keys
 
     def records(self, sc, limit=None, sample=1, decode=None):
         """Retrieve the elements of a Dataset
